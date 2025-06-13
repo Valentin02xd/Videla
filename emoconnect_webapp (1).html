@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EmoConnect Academy</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f0f4f8; }
+    .hidden { display: none; }
+    .btn { padding: 10px 20px; background: #4caf50; color: white; border: none; cursor: pointer; margin-top: 10px; }
+    .btn-danger { background: #f44336; }
+    .admin-section, .student-section { margin-top: 30px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; }
+    input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <h1>EmoConnect Academy</h1>
+
+  <div id="login">
+    <div class="form-group">
+      <label for="userType">Tipo de usuario:</label>
+      <select id="userType">
+        <option value="student">Estudiante</option>
+        <option value="admin">Administrador</option>
+      </select>
+    </div>
+    <div class="form-group" id="studentFields">
+      <label for="studentName">Nombre completo:</label>
+      <input type="text" id="studentName">
+      <label for="studentGrade">Grado:</label>
+      <select id="studentGrade">
+        <option value="1">1°</option>
+        <option value="2">2°</option>
+        <option value="3">3°</option>
+        <option value="4">4°</option>
+        <option value="5">5°</option>
+      </select>
+      <label for="studentSection">Sección:</label>
+      <select id="studentSection">
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+        <option value="D">D</option>
+      </select>
+    </div>
+    <div class="form-group hidden" id="adminFields">
+      <label for="adminPassword">Contraseña de administrador:</label>
+      <input type="password" id="adminPassword">
+    </div>
+    <button class="btn" onclick="login()">Ingresar</button>
+  </div>
+
+  <div id="studentSection" class="student-section hidden">
+    <h2>Registro emocional</h2>
+    <label for="emotion">¿Cómo te sientes?</label>
+    <select id="emotion">
+      <option value="Muy Feliz">😄 Muy Feliz</option>
+      <option value="Feliz">😊 Feliz</option>
+      <option value="Neutral">😐 Neutral</option>
+      <option value="Triste">😢 Triste</option>
+      <option value="Muy Triste">😭 Muy Triste</option>
+    </select>
+    <label for="note">Comentario (opcional):</label>
+    <input type="text" id="note">
+    <button class="btn" onclick="saveEmotion()">Guardar</button>
+    <button class="btn btn-danger" onclick="logout()">Cerrar sesión</button>
+  </div>
+
+  <div id="adminSection" class="admin-section hidden">
+    <h2>Panel de Administrador</h2>
+    <table id="entriesTable">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Grado</th>
+          <th>Sección</th>
+          <th>Emoción</th>
+          <th>Comentario</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button class="btn btn-danger" onclick="logout()">Cerrar sesión</button>
+  </div>
+
+  <script>
+    const adminPass = "admin2024";
+    const users = JSON.parse(localStorage.getItem("emoc_users") || "[]");
+
+    function login() {
+      const type = document.getElementById("userType").value;
+      if (type === "student") {
+        const name = document.getElementById("studentName").value;
+        const grade = document.getElementById("studentGrade").value;
+        const section = document.getElementById("studentSection").value;
+        if (!name || !grade || !section) return alert("Completa todos los campos");
+        sessionStorage.setItem("user", JSON.stringify({name, grade, section}));
+        document.getElementById("login").classList.add("hidden");
+        document.getElementById("studentSection").classList.remove("hidden");
+      } else {
+        const pass = document.getElementById("adminPassword").value;
+        if (pass !== adminPass) return alert("Contraseña incorrecta");
+        document.getElementById("login").classList.add("hidden");
+        document.getElementById("adminSection").classList.remove("hidden");
+        loadTable();
+      }
+    }
+
+    function saveEmotion() {
+      const emotion = document.getElementById("emotion").value;
+      const note = document.getElementById("note").value;
+      const user = JSON.parse(sessionStorage.getItem("user"));
+      const entry = { ...user, emotion, note, date: new Date().toLocaleString() };
+      users.push(entry);
+      localStorage.setItem("emoc_users", JSON.stringify(users));
+      alert("Estado guardado");
+    }
+
+    function loadTable() {
+      const table = document.querySelector("#entriesTable tbody");
+      table.innerHTML = "";
+      users.forEach(u => {
+        const row = `<tr><td>${u.name}</td><td>${u.grade}</td><td>${u.section}</td><td>${u.emotion}</td><td>${u.note}</td><td>${u.date}</td></tr>`;
+        table.innerHTML += row;
+      });
+    }
+
+    function logout() {
+      sessionStorage.clear();
+      location.reload();
+    }
+
+    document.getElementById("userType").addEventListener("change", (e) => {
+      const isAdmin = e.target.value === "admin";
+      document.getElementById("adminFields").classList.toggle("hidden", !isAdmin);
+      document.getElementById("studentFields").classList.toggle("hidden", isAdmin);
+    });
+  </script>
+</body>
+</html>
